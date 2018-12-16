@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # TODO https://www.home-assistant.io/components/camera.push/
+# curl -X POST -H "x-ha-access: $PASS" -F "image=@/home/hass/camera/gate.jpg" http://localhost:8123/api/webhook/gate_webhook
 
 import asyncio
 import argparse
