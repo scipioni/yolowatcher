@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+# TODO https://www.home-assistant.io/components/camera.push/
+
 import asyncio
 import argparse
 import aionotify
