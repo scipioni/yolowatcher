@@ -6,3 +6,9 @@ Download weigths and yolo configuration (yolov3-tiny as example)
 ```
 yolowatcher_download --storage ./yolo
 ```
+
+
+Test detect mode on sample file
+```
+python yolowatcher/detect.py examples/dog.jpg
+```

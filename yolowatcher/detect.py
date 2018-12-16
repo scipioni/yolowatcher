@@ -16,8 +16,8 @@ from dnn import getOutputsNames, postprocess, targets
 
 ap = argparse.ArgumentParser()
 ap.add_argument('images', nargs='+', help="list of images")
-ap.add_argument("--yolo-model", default="weights/yolov3-tiny.weights")
-ap.add_argument("--yolo-config", default="cfg/yolov3-tiny.cfg",
+ap.add_argument("--yolo-model", default="yolo/yolov3-tiny.weights")
+ap.add_argument("--yolo-config", default="yolo/yolov3-tiny.cfg",
                 help="dnn config network")
 ap.add_argument('--yolo-size', type=int, default=416,
                 help="yolo width/height size")
@@ -35,12 +35,10 @@ ap.add_argument('--target', choices=targets, default=cv2.dnn.DNN_TARGET_CPU, typ
                 '%d: OpenCL, '
                 '%d: OpenCL fp16 (half-float precision), '
                 '%d: VPU' % targets)
-ap.add_argument('--classes', default="cfg/coco.names",
+ap.add_argument('--classes', default="yolo/coco.names",
                 help="path to model.names")
 args = ap.parse_args()
 
-
-#tracker = cv2.TrackerKCF_create()
 
 classes = ['plate']
 if args.classes:
@@ -77,52 +75,16 @@ def process_image(image, net, totals, crop=False, filename='', bboxes_truth=[]):
     return image, bboxes
 
 
-class ImageGenerator():
-    def __init__(self, images):
-        self.video = None
-        if images and '.mp4' in images[0]:
-            self.video = images[0]
-        self.images = images
-        self.current = -1
-
-        if self.video:
-            print("video detected")
-            if args.save_bbox or args.save_dataset:
-                args.step = 4
-                print("force step=%s" % args.step)
-            self.cap = cv2.VideoCapture(self.video)
-        else:
-            self.cap = None
-
-        self.current_frame = None
-        self.current_bboxes = []
-
-    def get(self, i):
-        while self.current < i:
-            if self.video:
-                ret, img = self.cap.read()
-                if img is None:
-                    return (None, '')
-                self.current += 1
-                self.current_frame = img
-            elif 0 <= i < len(self.images):
-                self.current = i
-                self.current_frame = cv2.imread(self.images[i])
-                self.current_bboxes = []
-            else:
-                return (None, '', [])
-        if args.grey:
-            self.current_frame = cv2.cvtColor(
-                self.current_frame, cv2.COLOR_BGR2GRAY)
-        if self.video:
-            return self.current_frame.copy(), "%s-%d.jpg" % (os.path.basename(self.video).split('.')[0], i), []
-        else:
-            return self.current_frame.copy(), self.images[i], self.current_bboxes
+net = None
+totals = {}
 
 
-def main():
+def initialize():
+    global net, totals
+
     totals = {'+': 0, '-': 0, 'y+': 0, 'y-': 0, 'y-bads': 0, 'y-tot': 0,
               'y-inference-ms': 0, 'y-inference-count': 0, 'y-score': 0, 'y-truth': 0}
+
     try:
         net = cv2.dnn.readNetFromDarknet(args.yolo_config, args.yolo_model)
     except:
@@ -130,34 +92,23 @@ def main():
         sys.exit(1)
     net.setPreferableTarget(args.target)
 
-    if args.crop:
-        pass  # print("CROP active")
 
-    imageGenerator = ImageGenerator(args.images)
+def detect(filename):
+    global net, totals
 
-    i = 0
-    while True:
-        frame, filename, bboxes_truth = imageGenerator.get(i)
-        if frame is None:
-            break
-
-        frame, bboxes = process_image(frame,
-                                      net,
-                                      totals,
-                                      crop=args.crop,
-                                      filename=filename,
-                                      bboxes_truth=bboxes_truth
-                                      )
-
-        if bboxes:
-            print("+", end="")
-            print(bboxes)
-        else:
-            print(".", end="")
-        sys.stdout.flush()
-
-        i += args.step
+    frame = cv2.imread(filename)
+    frame, bboxes = process_image(frame,
+                                  net,
+                                  totals,
+                                  crop=args.crop,
+                                  filename=filename,
+                                  )
+    return bboxes
 
 
 if __name__ == '__main__':
-    main()
+    initialize()
+    for image in args.images:
+        bboxes = detect(image)
+        for box in bboxes:
+            print(box)
