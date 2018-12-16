@@ -98,7 +98,12 @@ def initialize():
 def detect(filename):
     global net, totals
 
-    frame = cv2.imread(filename)
+    try:
+        frame = cv2.imread(filename)
+    except:
+        print(" skipped")
+        return []
+        
     frame, bboxes = process_image(frame,
                                   net,
                                   totals,
