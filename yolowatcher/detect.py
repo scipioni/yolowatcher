@@ -12,10 +12,10 @@ import time
 import cv2
 import numpy as np
 
-from dnn import getOutputsNames, postprocess, targets
+from yolowatcher.dnn import getOutputsNames, postprocess, targets
 
 ap = argparse.ArgumentParser()
-ap.add_argument('images', nargs='+', help="list of images")
+ap.add_argument("--folder", default="incoming")
 ap.add_argument("--yolo-model", default="yolo/yolov3-tiny.weights")
 ap.add_argument("--yolo-config", default="yolo/yolov3-tiny.cfg",
                 help="dnn config network")
@@ -37,13 +37,10 @@ ap.add_argument('--target', choices=targets, default=cv2.dnn.DNN_TARGET_CPU, typ
                 '%d: VPU' % targets)
 ap.add_argument('--classes', default="yolo/coco.names",
                 help="path to model.names")
-args = ap.parse_args()
-
 
 classes = ['plate']
-if args.classes:
-    classes = [c.strip() for c in open(args.classes).readlines()]
-
+net = None
+totals = {}
 
 def process_image(image, net, totals, crop=False, filename='', bboxes_truth=[]):
     """
@@ -75,22 +72,27 @@ def process_image(image, net, totals, crop=False, filename='', bboxes_truth=[]):
     return image, bboxes
 
 
-net = None
-totals = {}
 
 
 def initialize():
-    global net, totals
+    global net, totals, args
+
+    args = ap.parse_args()
+
+    if args.classes:
+        classes = [c.strip() for c in open(args.classes).readlines()]
 
     totals = {'+': 0, '-': 0, 'y+': 0, 'y-': 0, 'y-bads': 0, 'y-tot': 0,
               'y-inference-ms': 0, 'y-inference-count': 0, 'y-score': 0, 'y-truth': 0}
 
     try:
         net = cv2.dnn.readNetFromDarknet(args.yolo_config, args.yolo_model)
+        print(f"yolo net initialized from {args.yolo_config} and {args.yolo_model}")
     except:
         print("Errore:", args.yolo_config, args.yolo_model)
         sys.exit(1)
     net.setPreferableTarget(args.target)
+    return args
 
 
 def detect(filename):
@@ -107,6 +109,8 @@ def detect(filename):
 
 
 if __name__ == '__main__':
+    ap.add_argument('images', nargs='+', help="list of images")
+
     initialize()
     for image in args.images:
         bboxes = detect(image)
