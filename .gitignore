@@ -10,3 +10,4 @@
 /lib
 /yolo
 .vscode
+/incoming/*

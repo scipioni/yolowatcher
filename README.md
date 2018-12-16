@@ -12,3 +12,13 @@ Test detect mode on sample file
 ```
 python yolowatcher/detect.py examples/dog.jpg
 ```
+
+Run watcher to look in folder
+```
+yolowatcher_run --folder incoming
+```
+
+On another shell copy file on incoming
+```
+cp examples/dog.jpg incoming
+```

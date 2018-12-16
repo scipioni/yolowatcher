@@ -11,5 +11,8 @@ setup(name='yolowatcher',
       zip_safe=False,
       install_requires=['opencv-python', 'aionotify'],
       entry_points={
-          'console_scripts': ['yolowatcher_download = yolowatcher.download:run'],
+          'console_scripts': [
+            'yolowatcher_download = yolowatcher.download:run',
+            'yolowatcher_run = yolowatcher.main:run',
+            ],
       })
