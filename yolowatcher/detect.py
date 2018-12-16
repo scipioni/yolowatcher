@@ -47,7 +47,10 @@ def process_image(image, net, totals, crop=False, filename='', bboxes_truth=[]):
     se crop==True viene utilizzato solo il mirino quadrato centrato
     se crop==False viene fatto il padding dell'immagine fino ad avere un quadrato più grande che la contiene
     """
-    (h, w) = image.shape[:2]
+    try:
+        (h, w) = image.shape[:2]
+    except:
+        return None, []
 
     if h < args.yolo_size or w < args.yolo_size:
         print(" resized")
@@ -103,7 +106,7 @@ def detect(filename):
     except:
         print(" skipped")
         return []
-        
+
     frame, bboxes = process_image(frame,
                                   net,
                                   totals,
