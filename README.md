@@ -21,5 +21,3 @@ On another shell copy file on incoming
 ```
 cp examples/dog.jpg incoming
 ```
-
-
