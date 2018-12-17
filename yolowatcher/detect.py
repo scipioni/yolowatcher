@@ -29,6 +29,7 @@ ap.add_argument('--square', action='store_true', default=False)
 ap.add_argument('--grey', action='store_true', default=False)
 ap.add_argument('--min-size', type=int, default=200)
 ap.add_argument('--step', type=int, default=1)
+ap.add_argument('--video-skip', type=int, default=10)
 ap.add_argument('--target', choices=targets, default=cv2.dnn.DNN_TARGET_CPU, type=int,
                 help='Choose one of target computation devices: '
                 '%d: CPU target (by default), '
@@ -109,6 +110,7 @@ def detect(filename):
     else:
         print(f"processing image {filename}")
 
+    i = 1
     while True:
         if isImage:
             try:
@@ -117,7 +119,9 @@ def detect(filename):
                 print(" skipped")
                 frame = None
         else:
-            ret, frame = cap.read()
+            while i % args.video_skip > 0:
+                ret, frame = cap.read()
+                i += 1
 
         if frame is None:
             break  # yield []
@@ -146,6 +150,7 @@ def detect(filename):
 
         if isImage:
             break
+        i += 1
 
 
 if __name__ == '__main__':
