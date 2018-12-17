@@ -78,7 +78,7 @@ def process_image(image, net, totals, crop=False, filename='', bboxes_truth=[]):
 
 
 def initialize():
-    global net, totals, args
+    global net, totals, args, classes
 
     args = ap.parse_args()
 
