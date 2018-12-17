@@ -42,6 +42,7 @@ classes = ['plate']
 net = None
 totals = {}
 
+
 def process_image(image, net, totals, crop=False, filename='', bboxes_truth=[]):
     """
     se crop==True viene utilizzato solo il mirino quadrato centrato
@@ -75,8 +76,6 @@ def process_image(image, net, totals, crop=False, filename='', bboxes_truth=[]):
     return image, bboxes
 
 
-
-
 def initialize():
     global net, totals, args, classes
 
@@ -90,7 +89,8 @@ def initialize():
 
     try:
         net = cv2.dnn.readNetFromDarknet(args.yolo_config, args.yolo_model)
-        print(f"yolo net initialized from {args.yolo_config} and {args.yolo_model}")
+        print(
+            f"yolo net initialized from {args.yolo_config} and {args.yolo_model}")
     except:
         print("Errore:", args.yolo_config, args.yolo_model)
         sys.exit(1)
@@ -101,25 +101,51 @@ def initialize():
 def detect(filename):
     global net, totals
 
-    try:
-        frame = cv2.imread(filename)
-    except:
-        print(" skipped")
-        return []
+    isImage = '.jpg' in filename
 
-    frame, bboxes = process_image(frame,
-                                  net,
-                                  totals,
-                                  crop=args.crop,
-                                  filename=filename,
-                                  )
-    if args.show:
-        for box in bboxes:
-            drawRect(frame, box, classes=classes)
+    if not isImage:
+        print(f"processing video {filename}")
+        cap = cv2.VideoCapture(filename)
+    else:
+        print(f"processing image {filename}")
 
-        cv2.imshow("image", frame)
-        cv2.waitKey(0)
-    return bboxes
+    while True:
+        if isImage:
+            try:
+                frame = cv2.imread(filename)
+            except:
+                print(" skipped")
+                frame = None
+        else:
+            ret, frame = cap.read()
+
+        if frame is None:
+            break  # yield []
+
+        frame, bboxes = process_image(frame,
+                                      net,
+                                      totals,
+                                      crop=args.crop,
+                                      filename=filename,
+                                      )
+
+        if frame is None:
+            break
+        if args.show:
+            for box in bboxes:
+                drawRect(frame, box, classes=classes)
+
+            cv2.imshow("image", frame)
+            key = cv2.waitKey(0)
+            if key in (ord('q'), 27):
+                sys.exit(0)
+        if not bboxes:
+            print(".", end="")
+            sys.stdout.flush()
+        yield bboxes
+
+        if isImage:
+            break
 
 
 if __name__ == '__main__':
@@ -127,6 +153,6 @@ if __name__ == '__main__':
 
     initialize()
     for image in args.images:
-        bboxes = detect(image)
-        for box in bboxes:
-            print(box)
+        for bboxes in detect(image):
+            for box in bboxes:
+                print(box)
