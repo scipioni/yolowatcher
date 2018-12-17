@@ -12,7 +12,7 @@ import time
 import cv2
 import numpy as np
 
-from yolowatcher.dnn import getOutputsNames, postprocess, targets
+from yolowatcher.dnn import getOutputsNames, postprocess, targets, drawRect
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--folder", default="incoming")
@@ -113,6 +113,12 @@ def detect(filename):
                                   crop=args.crop,
                                   filename=filename,
                                   )
+    if args.show:
+        for box in bboxes:
+            drawRect(frame, box, classes=classes)
+
+        cv2.imshow("image", frame)
+        cv2.waitKey(0)
     return bboxes
 
 

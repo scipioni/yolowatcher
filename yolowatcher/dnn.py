@@ -142,3 +142,28 @@ def postprocess(net, frame, outs, confidence_min=0.5, classes=[], crop=True, ste
                       (deltax+Qw, deltay+Qh), (255, 255, 0), 2)
 
     return result
+
+def drawRect(frame, box, classes=[], color=(0,255,0), show_confidence=True):
+    # Draw a bounding box.
+    left = box['box'][0]
+    top = box['box'][1]
+    right = box['box'][0] + box['box'][2]
+    bottom = box['box'][1] + box['box'][3]
+    cv2.rectangle(frame, (left, top), (right, bottom), color, 2)
+
+    if classes:
+        assert(box['classId'] < len(classes))
+        label = classes[box['classId']]
+    else:
+        label = str(box['classId']+1)
+
+    if show_confidence:
+        if show_confidence:
+            label += " %.1f%%" % (int(box['confidence']*1000)/10.0,)
+            if 'score' in box:
+                label += " s:%.1f%%" % (int(box['score']*1000)/10.0,)
+
+    labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+    top = max(top, labelSize[1])
+    cv2.rectangle(frame, (left, top - labelSize[1]), (left + labelSize[0], top + baseLine), (0, 255, 0), cv2.FILLED)
+    cv2.putText(frame, label, (left, top), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))

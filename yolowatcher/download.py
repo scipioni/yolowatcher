@@ -6,6 +6,7 @@ import urllib.request
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--storage", default="yolo")
+ap.add_argument('--standard', action='store_true', default=False)
 args = ap.parse_args()
 
 def download(url, filename):
@@ -24,4 +25,8 @@ def run():
     download("https://github.com/pjreddie/darknet/raw/master/cfg/yolov3-tiny.cfg", "yolov3-tiny.cfg")
     download("https://pjreddie.com/media/files/yolov3-tiny.weights", "yolov3-tiny.weights")
     download("https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names", "coco.names")
+
+    if args.standard:
+        download("https://github.com/pjreddie/darknet/raw/master/cfg/yolov3.cfg", "yolov3.cfg")
+        download("https://pjreddie.com/media/files/yolov3.weights", "yolov3.weights")
 
