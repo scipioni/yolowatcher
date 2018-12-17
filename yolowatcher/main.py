@@ -5,30 +5,33 @@
 
 import asyncio
 import argparse
-import aionotify
 import os
 from yolowatcher import detect
-
+from subprocess import PIPE, Popen
 
 loop = asyncio.get_event_loop()
 
-async def watch(args):
-    watcher = aionotify.Watcher()
-    watcher.watch(alias='incoming', path=args.folder, flags=aionotify.Flags.CLOSE_WRITE)
+inotifywait = ['inotifywait',
+               '--recursive',
+               '--quiet',
+               '--monitor', ## '--timeout', '1',
+               '--event',
+               'CLOSE_WRITE',
+               '--format', '%w%f']
 
-    await watcher.setup(loop)
-    while True:
-        event = await watcher.get_event()
-        filename = os.path.join(args.folder, event.name)
+async def watch(folder):
+    p = Popen(inotifywait + [folder], stdout=PIPE)
+    for line in iter(p.stdout.readline, ''):
+        filename = line.strip().decode('utf8')
         print(f"detected {filename}")
-
         bboxes = detect.detect(filename)
         for box in bboxes:
             print(box)
-    watcher.close()
 
 def run():
     args = detect.initialize()
 
-    print(f"watching folder: {args.folder} ...")
-    loop.run_until_complete(watch(args))
+    folder = os.path.abspath(args.folder)
+
+    print(f"watching folder: {folder} ...")
+    loop.run_until_complete(watch(folder))

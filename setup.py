@@ -9,7 +9,7 @@ setup(name='yolowatcher',
       license='MIT',
       packages=['yolowatcher'],
       zip_safe=False,
-      install_requires=['opencv-python', 'aionotify'],
+      install_requires=['opencv-python',],
       entry_points={
           'console_scripts': [
             'yolowatcher_download = yolowatcher.download:run',

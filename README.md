@@ -2,6 +2,9 @@ YOLO object detector as service. It looks into folder for incoming images, detec
 
 I use with homeassistant to detect peoples or cars on my cameras.
 
+
+Prereq: inotify-tools
+
 Download weigths and yolo configuration (yolov3-tiny as example)
 ```
 yolowatcher_download --storage ~/.yolo

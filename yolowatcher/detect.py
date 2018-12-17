@@ -104,6 +104,7 @@ def detect(filename):
     try:
         frame = cv2.imread(filename)
     except:
+        raise
         print(" skipped")
         return []
 
